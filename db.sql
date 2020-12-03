@@ -1,0 +1,5 @@
+CREATE USER poc WITH PASSWORD 'password';
+
+CREATE DATABASE poc_rust;
+
+GRANT ALL PRIVILEGES ON DATABASE poc_rust TO poc;
