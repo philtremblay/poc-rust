@@ -13,7 +13,8 @@ VERSION      ?= $(shell git describe --tags --exact-match 2>/dev/null || git des
 
 # Docker variables
 DEFAULT_TAG  ?= $(shell echo "$(VERSION)" | tr -d 'v')
-DOCKER_IMAGE := $(VENDOR)/$(NAME)
+REGISTRY     := gcr.io
+DOCKER_IMAGE := $(REGISTRY)/$(VENDOR)/$(NAME)
 DOCKER_TAG   ?= $(DEFAULT_TAG)
 
 .PHONY: docker
@@ -25,6 +26,11 @@ docker: ## Build the project container with Docker
 local-run: ## Run the project locally via cargo
 	@ $(MAKE) --no-print-directory log-$@
 	. env.sh && cargo run
+
+.PHONY: migration-up
+migration-up: ## Run the migration up diesel script
+	@ $(MAKE) --no-print-directory log-$@
+	. env.sh && diesel migration up
 	
 #####################
 ## Release targets ##
