@@ -1,0 +1,10 @@
+---
+threads: 4
+base: 'https://poc-rust-ptp3gl2njq-ue.a.run.app' 
+iterations: 50
+rampup: 2
+
+plan:
+  - name: Retrieve Page Views
+    request:
+      url: /page_view

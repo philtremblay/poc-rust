@@ -1,4 +1,4 @@
-CREATE USER poc WITH PASSWORD 'password';
+CREATE USER poc WITH PASSWORD '';
 
 CREATE DATABASE poc_rust;
 

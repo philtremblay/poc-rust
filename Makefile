@@ -20,18 +20,23 @@ DOCKER_TAG   ?= $(DEFAULT_TAG)
 .PHONY: docker
 docker: ## Build the project container with Docker
 	@ $(MAKE) --no-print-directory log-$@
-	docker build --tag $(DOCKER_IMAGE):$(DOCKER_TAG) .
+	@ docker build --tag $(DOCKER_IMAGE):$(DOCKER_TAG) .
 
 .PHONY: local-run
 local-run: ## Run the project locally via cargo
 	@ $(MAKE) --no-print-directory log-$@
-	. env.sh && cargo run
+	@ . env.sh && cargo run
 
 .PHONY: migration-up
 migration-up: ## Run the migration up diesel script
 	@ $(MAKE) --no-print-directory log-$@
-	. env.sh && diesel migration up
+	@ . env.sh && diesel migration up
 	
+.PHONY: stress
+stress: ## Stress test api using Drill via benchmark.yml
+	@ $(MAKE) --no-print-directory log-$@
+	@ drill --benchmark benchmark.yml --stats
+
 #####################
 ## Release targets ##
 #####################
