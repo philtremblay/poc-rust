@@ -18,9 +18,16 @@ DOCKER_IMAGE := $(REGISTRY)/$(VENDOR)/$(NAME)
 DOCKER_TAG   ?= $(DEFAULT_TAG)
 
 .PHONY: docker
+docker: DOCKER_IMAGE ?= $(DOCKER_IMAGE)
 docker: ## Build the project container with Docker
 	@ $(MAKE) --no-print-directory log-$@
 	@ docker build --tag $(DOCKER_IMAGE):$(DOCKER_TAG) .
+
+.PHONY: push
+push: DOCKER_IMAGE ?= $(DOCKER_IMAGE)
+push: ## Push the project container
+	@ $(MAKE) --no-print-directory log-$@
+	@ docker push $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 .PHONY: local-run
 local-run: ## Run the project locally via cargo
