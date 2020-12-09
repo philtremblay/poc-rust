@@ -7,7 +7,7 @@ phases:
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
   build:
     commands:
-      - make build DOCKER_IMAGE=401659838943.dkr.ecr.us-east-2.amazonaws.com/poc-rust
-  push:
+      - make docker DOCKER_IMAGE=401659838943.dkr.ecr.us-east-2.amazonaws.com/poc-rust
+  post_build:
     commands:
       - make push DOCKER_IMAGE=401659838943.dkr.ecr.us-east-2.amazonaws.com/poc-rust
