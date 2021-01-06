@@ -32,13 +32,8 @@ push: ## Push the project container
 .PHONY: local-run
 local-run: ## Run the project locally via cargo
 	@ $(MAKE) --no-print-directory log-$@
-	@ . env.sh && cargo run
+	@ . env.sh && RUST_BACKTRACE=1 cargo run
 
-.PHONY: migration-up
-migration-up: ## Run the migration up diesel script
-	@ $(MAKE) --no-print-directory log-$@
-	@ . env.sh && diesel migration up
-	
 .PHONY: stress
 stress: ## Stress test api using Drill via benchmark.yml
 	@ $(MAKE) --no-print-directory log-$@

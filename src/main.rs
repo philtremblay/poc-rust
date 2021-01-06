@@ -1,37 +1,64 @@
-#![feature(proc_macro_hygiene, decl_macro)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 
-extern crate chrono;
-#[macro_use]
-extern crate diesel;
-#[macro_use]
-extern crate rocket;
-#[macro_use]
-extern crate rocket_contrib;
-extern crate serde;
-extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
+use chrono::prelude::*;
+use db::DB;
+use serde::{Deserialize, Serialize};
+use std::convert::Infallible;
+use warp::{Filter, Rejection};
 
-use diesel::pg::PgConnection;
+type Result<T> = std::result::Result<T, error::Error>;
+type WebResult<T> = std::result::Result<T, Rejection>;
 
-pub mod cors;
-pub mod models;
-pub mod routes;
-pub mod schema; // Ignore errors from this for now; it doesn't get created unti later
+mod db;
+mod error;
+mod handler;
 
-// This registers your database with Rocket, returning a `Fairing` that can be `.attach`'d to your
-// Rocket application to set up a connection pool for it and automatically manage it for you.
-#[database("rocket_app")]
-pub struct DbConn(PgConnection);
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Book {
+    pub id: String,
+    pub name: String,
+    pub author: String,
+    pub num_pages: usize,
+    pub added_at: DateTime<Utc>,
+    pub tags: Vec<String>,
+}
 
-fn main() {
-    rocket::ignite()
-        .mount("/", routes![
-            routes::index,
-            routes::create_page_view,
-            routes::list_page_views,
-        ])
-        .attach(DbConn::fairing())
-        .attach(cors::CorsFairing)
-        .launch();
+#[tokio::main]
+async fn main() -> Result<()> {
+    let db = DB::init().await?;
+
+    let book = warp::path("book");
+
+    let book_routes = book
+        .and(warp::post())
+        .and(warp::body::json())
+        .and(with_db(db.clone()))
+        .and_then(handler::create_book_handler)
+        .or(book
+            .and(warp::put())
+            .and(warp::path::param())
+            .and(warp::body::json())
+            .and(with_db(db.clone()))
+            .and_then(handler::edit_book_handler))
+        .or(book
+            .and(warp::delete())
+            .and(warp::path::param())
+            .and(with_db(db.clone()))
+            .and_then(handler::delete_book_handler))
+        .or(book
+            .and(warp::get())
+            .and(with_db(db.clone()))
+            .and_then(handler::books_list_handler));
+
+    let routes = book_routes.recover(error::handle_rejection);
+
+    println!("Started on port 8080");
+    warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
+    Ok(())
+}
+
+fn with_db(db: DB) -> impl Filter<Extract = (DB,), Error = Infallible> + Clone {
+    warp::any().map(move || db.clone())
 }
