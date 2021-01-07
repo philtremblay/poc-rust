@@ -1,12 +1,6 @@
-FROM debian:bullseye-slim AS builder
+FROM rust:slim AS builder
 
-RUN apt-get update && apt-get install -y curl build-essential && \
-    rm -rf /var/lib/apt/lists/* && \
-    curl https://sh.rustup.rs/ -sSf | sh -s -- -y --default-toolchain nightly 
-
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-ADD . ./
+COPY . .
 
 RUN cargo build --release
 
