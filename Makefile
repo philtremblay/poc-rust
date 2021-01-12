@@ -13,7 +13,7 @@ VERSION      ?= $(shell git describe --tags --exact-match 2>/dev/null || git des
 
 # Docker variables
 DEFAULT_TAG  ?= $(shell echo "$(VERSION)" | tr -d 'v')
-REGISTRY     := gcr.io
+REGISTRY     := us.gcr.io
 DOCKER_IMAGE := $(REGISTRY)/$(VENDOR)/$(NAME)
 DOCKER_TAG   ?= $(DEFAULT_TAG)
 
