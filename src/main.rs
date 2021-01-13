@@ -56,7 +56,7 @@ async fn main() -> Result<()> {
         .with(warp::cors()
             .allow_any_origin()
             .allow_methods(vec!["OPTIONS", "GET", "POST", "PUT", "DELETE"])
-            .allow_headers(vec!["content-type"]))
+            .allow_headers(vec!["content-type", "Access-Control-Allow-Origin"]))
         .recover(error::handle_rejection);
 
     println!("Started on port 8080");
