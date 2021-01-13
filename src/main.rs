@@ -6,6 +6,7 @@ use chrono::prelude::*;
 use db::DB;
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
+use std::env;
 use warp::{Filter, Rejection};
 
 type Result<T> = std::result::Result<T, error::Error>;
@@ -27,7 +28,19 @@ pub struct Book {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    if env::var_os("RUST_LOG").is_none() {
+        // Set `RUST_LOG=todos=debug` to see debug logs,
+        // this only shows access logs.
+        env::set_var("RUST_LOG", "book=debug");
+    }
+    pretty_env_logger::init();
+
     let db = DB::init().await?;
+
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_methods(vec!["OPTIONS", "GET", "POST", "PUT", "DELETE"])
+        .allow_headers(vec!["content-type", "Access-Control-Allow-Origin"]);
 
     let book = warp::path("book");
 
@@ -51,13 +64,11 @@ async fn main() -> Result<()> {
             .and(warp::get())
             .and(with_db(db.clone()))
             .and_then(handler::books_list_handler));
-
+            
     let routes = book_routes
-        .with(warp::cors()
-            .allow_any_origin()
-            .allow_methods(vec!["OPTIONS", "GET", "POST", "PUT", "DELETE"])
-            .allow_headers(vec!["content-type", "Access-Control-Allow-Origin"]))
-        .recover(error::handle_rejection);
+        .recover(error::handle_rejection)
+        .with(warp::log("book"))
+        .with(cors);
 
     println!("Started on port 8080");
     warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
